@@ -1,0 +1,34 @@
+# --- Java Derleme Dosyaları ---
+*.class
+*.jar
+*.war
+*.ear
+bin/
+target/
+
+# --- Veritabanı ve Yerel Yapılandırma (Şifre Güvenliği İçin) ---
+# Eğer DBConnection içinde şifreniz varsa bu dosyayı takip etmeyi bırakabilirsiniz
+# Ancak ekip arkadaşlarınızın şablonu görmesi için genellikle açık bırakılır.
+# Önemli: Şifrelerinizi asla bu dosyaya güvenerek açıkça yazmayın!
+config.properties
+.env
+
+# --- VS Code Ayarları ---
+.vscode/
+*.code-workspace
+.history/
+
+# --- macOS Sistem Dosyaları ---
+.DS_Store
+
+# --- Eclipse / IntelliJ Ayarları (Ekip arkadaşların kullanıyorsa) ---
+.settings/
+.project
+.classpath
+.idea/
+*.iml
+*.iws
+
+# --- Kütüphaneler (Opsiyonel) ---
+# Eğer lib klasöründeki JAR'ları GitHub'a yüklemek istiyorsan alttaki satırı sil:
+lib/
