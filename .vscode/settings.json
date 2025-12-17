@@ -1,0 +1,9 @@
+{
+    "java.project.referencedLibraries": [
+        "/Users/elifaltun/Desktop/mysql-connector-j-9.5.0.jar"
+    ],
+    "java.project.sourcePaths": [
+        "SmartCityPlatform/src/java",
+        "SmartCityPlatform/src"
+    ]
+}
