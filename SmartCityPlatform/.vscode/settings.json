@@ -5,6 +5,7 @@
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "/Users/elifaltun/Desktop/mysql-connector-j-9.5.0.jar"
-    ]
+        "${workspaceFolder}/mysql-connector-j-8.2.0.jar"
+    ],
+    "java.configuration.runtimes": []
 }

@@ -53,6 +53,80 @@ Yönetici paneli için hazırlanan özel DAO sorguları sayesinde şu veriler an
 
 ---
 
+## 🎮 Kişi 3 Sorumluluk Alanı: Controller/Presentation Katmanı
+
+Controller katmanı, kullanıcı isteklerini yöneten ve Service katmanını çağıran arayüz katmanıdır. Tüm Controller sınıfları **Esma** tarafından geliştirilmiştir.
+
+### 1. Controller Sınıfları
+
+#### AuthController (Kimlik Doğrulama)
+Kullanıcı girişi ve kayıt işlemlerini yönetir:
+- **`login()`** - Endpoint: `/login` - Kullanıcı girişi ve doğrulama
+- **`register()`** - Endpoint: `/register` - Yeni kullanıcı kaydı
+- Validasyon işlemleri (boş alan kontrolü, şifre uzunluk kontrolü)
+
+#### CitizenController (Vatandaş İşlemleri)
+Vatandaşların yapabileceği tüm işlemleri yönetir:
+- **`createIssue()`** - Endpoint: `/issues/create` - Şikayet/talep oluşturma
+- **`getMyIssues()`** - Endpoint: `/issues/my` - Kendi şikayetlerini görüntüleme
+- **`viewOpenProjects()`** - Endpoint: `/projects/view-open` - Açık projeleri listeleme
+- **`applyForProject()`** - Endpoint: `/projects/apply` - Projeye başvurma
+- **`viewMyApplications()`** - Endpoint: `/applications/my` - Başvurularını görüntüleme
+
+#### AdminController (Yönetici İşlemleri)
+Yöneticilerin yapabileceği tüm işlemleri yönetir:
+- **`getAllIssues()`** - Endpoint: `/issues/all` - Tüm şikayetleri listeleme
+- **`updateIssueStatus()`** - Endpoint: `/issues/update-status` - Şikayet durumu güncelleme
+- **`prioritizeIssue()`** - Endpoint: `/issues/prioritize` - Şikayet önceliklendirme
+- **`createProject()`** - Endpoint: `/projects/create` - Yeni proje oluşturma
+- **`updateProjectStatus()`** - Endpoint: `/projects/update-status` - Proje durumu güncelleme
+- **`reviewApplications()`** - Endpoint: `/applications/review` - Başvuruları görüntüleme
+- **`approveApplication()`** - Endpoint: `/applications/approve` - Başvuruyu onaylama
+- **`rejectApplication()`** - Endpoint: `/applications/reject` - Başvuruyu reddetme
+- **`viewAnalyticsDashboard()`** - Endpoint: `/dashboard/analytics` - Analitik panel görüntüleme
+
+### 2. Main.java Entegrasyonu
+
+Ana uygulama sınıfı (`Main.java`) Controller katmanını kullanacak şekilde güncellenmiştir:
+- Controller'lar üzerinden tüm işlemler yönetiliyor
+- Kullanıcı menüleri Controller metodları ile çalışıyor
+- Kayıt (register) özelliği eklendi
+- Hata yönetimi iyileştirildi
+
+### 3. Veritabanı Otomatik Kurulumu
+
+`DatabaseSetup.java` sınıfı eklendi:
+- İlk çalıştırmada veritabanını otomatik oluşturur
+- Tüm tabloları kurar
+- Örnek verileri ekler
+- Veritabanı yoksa oluşturur, varsa mevcut yapıyı korur
+
+### 4. Mimari Yapı
+
+```
+Main (Kullanıcı Arayüzü)
+    ↓
+Controller (İstek Yönetimi + Validasyon) ← Kişi 3 Sorumluluğu
+    ↓
+Service (İş Mantığı) ← Kişi 2 Sorumluluğu
+    ↓
+DAO (Veritabanı İşlemleri) ← Kişi 1 Sorumluluğu
+    ↓
+MySQL Veritabanı
+```
+
+### 5. Özellikler
+
+- ✅ Tüm Controller sınıfları Türkçe yorumlarla dokümante edildi
+- ✅ Her metoda `@author Esma` etiketi eklendi
+- ✅ Validasyon işlemleri Controller katmanında yapılıyor
+- ✅ Hata yönetimi ve kullanıcı geri bildirimleri eklendi
+- ✅ Proje çalışır durumda ve test edildi
+
+---
+
 **Kişi 1: Elif Altun** *Sorumluluk: Veritabanı Tasarımı, POJO Modelleri, DAO Katmanı, Service Arayüzleri.*
+
+**Kişi 3: Esma** *Sorumluluk: Controller/Presentation Katmanı, Kullanıcı Arayüzü Entegrasyonu, Veritabanı Otomatik Kurulumu.*
 
 ---
