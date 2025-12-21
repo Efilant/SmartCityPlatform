@@ -14,7 +14,7 @@ import java.sql.Statement;
  * Bu sınıf, veritabanını otomatik olarak oluşturur ve SQL dosyalarını çalıştırır.
  * SQL dosyaları: schema.sql, seed_data.sql, triggers.sql, procedures.sql
  * 
- * @author Elif 
+ * @author Esma, Elif 
  */
 public class DatabaseSetup {
     
