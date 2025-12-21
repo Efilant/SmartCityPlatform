@@ -8,8 +8,8 @@ import java.sql.DriverManager;
 public class DBConnection {
     // Veritabanı bilgilerini buraya yazıyoruz
     private static final String URL = "jdbc:mysql://localhost:3306/akilli_sehir_db";
-    private static final String USER = "root"; // MySQL kullanıcı adın (genelde root)
-    private static final String PASSWORD = "admin"; // MySQL şifreni buraya yazmalısın
+    private static final String USER = "javauser"; // MySQL kullanıcı adın (genelde root)
+    private static final String PASSWORD = "java123"; // MySQL şifreni buraya yazmalısın
 
 public static Connection getConnection() {
     try {

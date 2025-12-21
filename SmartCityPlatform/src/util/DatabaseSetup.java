@@ -19,11 +19,11 @@ public class DatabaseSetup {
     
     private static final String DB_URL = "jdbc:mysql://localhost:3306/";
     private static final String DB_NAME = "akilli_sehir_db";
-    private static final String USER = "root";
+    private static final String USER = "javauser";
     // Şifreyi DBConnection'dan al (tek yerden yönetim için)
     private static String getPassword() {
         // DBConnection.java'daki şifreyi buraya yazın (DBConnection ile aynı olmalı)
-        return "admin"; // MySQL şifreniz
+        return "java123"; // MySQL şifreniz
     }
     
     /**
