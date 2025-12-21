@@ -160,5 +160,32 @@ public class CitizenController {
         System.out.println("📋 Başvurularınız görüntüleniyor...");
         System.out.println("(Not: Bu özellik için ApplicationDAO'ya findByUserId metodu eklenmelidir)");
     }
+    
+    /**
+     * Kullanıcının duruma göre şikayetlerini görüntüleme (Stored Procedure kullanarak)
+     * 
+     * @param userId Kullanıcı ID'si
+     * @param status Şikayet durumu (Yeni, İnceleniyor, Çözüldü)
+     * @author Elif
+     */
+    public void viewMyIssuesByStatus(int userId, String status) {
+        if (status == null || status.trim().isEmpty()) {
+            System.out.println("❌ Hata: Durum belirtilmelidir!");
+            return;
+        }
+        
+        List<Issue> issues = issueService.getUserIssuesByStatus(userId, status);
+        
+        if (issues.isEmpty()) {
+            System.out.println("📭 '" + status + "' durumunda şikayetiniz bulunmamaktadır.");
+        } else {
+            System.out.println("\n📋 '" + status + "' Durumundaki Şikayetleriniz:");
+            System.out.println("ID | Başlık | Durum");
+            System.out.println("-------------------");
+            for (Issue issue : issues) {
+                System.out.println(issue.getIssueId() + " | " + issue.getTitle() + " | " + issue.getStatus());
+            }
+        }
+    }
 }
 

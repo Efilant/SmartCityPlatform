@@ -1,11 +1,12 @@
 package controller;
 
-import models.Issue;
-import models.Project;
-import service.IssueService;
-import dao.ProjectDAO;
 import dao.ApplicationDAO;
+import dao.ProjectDAO;
 import java.util.List;
+import models.Issue;
+import service.ApplicationService;
+import service.CategoryService;
+import service.IssueService;
 
 /**
  * AdminController - Yönetici İşlemleri Controller'ı
@@ -33,11 +34,15 @@ public class AdminController {
     private IssueService issueService;
     private ProjectDAO projectDAO;
     private ApplicationDAO applicationDAO;
+    private CategoryService categoryService;
+    private ApplicationService applicationService;
     
     public AdminController() {
         this.issueService = new IssueService();
         this.projectDAO = new ProjectDAO();
         this.applicationDAO = new ApplicationDAO();
+        this.categoryService = new CategoryService();
+        this.applicationService = new ApplicationService();
     }
     
     /**
@@ -184,7 +189,8 @@ public class AdminController {
         }
         
         System.out.println("\n📋 Proje #" + projectId + " için Başvurular:");
-        applicationDAO.findByProjectId(projectId);
+        // Stored Procedure kullanarak detaylı başvuru listesi
+        applicationService.printProjectApplications(projectId);
     }
     
     /**
@@ -234,16 +240,72 @@ public class AdminController {
      * Endpoint: /dashboard/analytics
      * 
      * Bu metod, yönetici için özet istatistikleri gösterir:
-     * - Aktif proje sayısı
-     * - Bekleyen başvuru sayısı
-     * - vb.
+     * - Sistem genel istatistikleri (GetSystemStats procedure)
+     * - Kategori başarı oranları (GetCategorySuccessRate procedure)
      * 
-     * @author Esma
+     * @author Esma, Elif
      */
     public void viewAnalyticsDashboard() {
         System.out.println("\n📊 YÖNETİCİ ANALİTİK PANELİ");
         System.out.println("============================");
+        
+        // Sistem genel istatistikleri (Stored Procedure kullanarak)
         projectDAO.printDashboardSummary();
+        
+        // Kategori başarı oranları (Stored Procedure kullanarak)
+        issueService.printCategoryReport();
+    }
+    
+    /**
+     * Kategoriye göre bekleyen şikayetleri görüntüleme
+     * 
+     * @param categoryId Kategori ID'si
+     * @author Elif
+     */
+    public void viewPendingIssuesByCategory(int categoryId) {
+        if (categoryId <= 0) {
+            System.out.println("❌ Hata: Geçersiz kategori ID!");
+            return;
+        }
+        
+        List<Issue> issues = issueService.getPendingIssuesByCategory(categoryId);
+        
+        if (issues.isEmpty()) {
+            System.out.println("📭 Bu kategoride bekleyen şikayet bulunmamaktadır.");
+        } else {
+            System.out.println("\n📋 Kategori #" + categoryId + " - Bekleyen Şikayetler:");
+            System.out.println("ID | Başlık | Durum | Açıklama");
+            System.out.println("-----------------------------------");
+            for (Issue issue : issues) {
+                System.out.println(issue.getIssueId() + " | " + issue.getTitle() + 
+                                 " | " + issue.getStatus() + " | " + 
+                                 (issue.getDescription() != null ? issue.getDescription().substring(0, Math.min(30, issue.getDescription().length())) : ""));
+            }
+        }
+    }
+    
+    /**
+     * En çok şikayet alan kategorileri görüntüleme
+     * 
+     * @param limit Kaç kategori gösterilecek
+     * @author Elif
+     */
+    public void viewTopCategories(int limit) {
+        if (limit <= 0) {
+            System.out.println("❌ Hata: Limit pozitif bir sayı olmalıdır!");
+            return;
+        }
+        
+        categoryService.printTopCategories(limit);
+    }
+    
+    /**
+     * Son 30 günün istatistiklerini görüntüleme
+     * 
+     * @author Elif
+     */
+    public void viewMonthlyStats() {
+        issueService.printMonthlyStats();
     }
 }
 

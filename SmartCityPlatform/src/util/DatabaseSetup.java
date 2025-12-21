@@ -1,33 +1,36 @@
 package util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
 import java.sql.ResultSet;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.nio.file.Paths;
+import java.sql.Statement;
 
 /**
  * Veritabanı Kurulum Yardımcı Sınıfı
  * 
- * Bu sınıf, veritabanını otomatik olarak oluşturur ve tabloları kurar.
+ * Bu sınıf, veritabanını otomatik olarak oluşturur ve SQL dosyalarını çalıştırır.
+ * SQL dosyaları: schema.sql, seed_data.sql, triggers.sql, procedures.sql
  * 
- * @author Esma
+ * @author Elif 
  */
 public class DatabaseSetup {
     
     private static final String DB_URL = "jdbc:mysql://localhost:3306/";
     private static final String DB_NAME = "akilli_sehir_db";
     private static final String USER = "root";
+    private static final String SQL_DIR = "sql";
+    
     // Şifreyi DBConnection'dan al (tek yerden yönetim için)
     private static String getPassword() {
         // DBConnection.java'daki şifreyi buraya yazın (DBConnection ile aynı olmalı)
-        return "admin"; // MySQL şifreniz
+        return "@Lifesk26"; // MySQL şifreniz
     }
     
     /**
-     * Veritabanını oluşturur ve tabloları kurar
+     * Veritabanını oluşturur ve SQL dosyalarını çalıştırır
      * @return Başarılıysa true
      */
     public static boolean setupDatabase() {
@@ -54,75 +57,40 @@ public class DatabaseSetup {
             // Veritabanını seç
             stmt.executeUpdate("USE " + DB_NAME);
             
-            // Tabloları oluştur
-            System.out.println("📋 Tablolar oluşturuluyor...");
+            // SQL dosyalarını sırayla çalıştır
+            System.out.println("📋 SQL dosyaları çalıştırılıyor...\n");
             
-            // Users tablosu
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS Users (" +
-                "user_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "username VARCHAR(50) NOT NULL UNIQUE, " +
-                "password_hash VARCHAR(255) NOT NULL, " +
-                "role ENUM('CITIZEN', 'ADMIN') NOT NULL, " +
-                "full_name VARCHAR(100)" +
-                ")"
-            );
+            // 1. Schema (Tablolar)
+            System.out.println("📄 schema.sql çalıştırılıyor...");
+            if (executeSqlFile(stmt, SQL_DIR + "/schema.sql")) {
+                System.out.println("✅ Tablolar oluşturuldu!\n");
+            } else {
+                System.out.println("❌ Schema dosyası çalıştırılamadı!\n");
+            }
             
-            // Categories tablosu
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS Categories (" +
-                "category_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "name VARCHAR(100) NOT NULL, " +
-                "responsible_unit VARCHAR(100)" +
-                ")"
-            );
+            // 2. Seed Data (Örnek veriler)
+            System.out.println("📄 seed_data.sql çalıştırılıyor...");
+            if (executeSqlFile(stmt, SQL_DIR + "/seed_data.sql")) {
+                System.out.println("✅ Örnek veriler eklendi!\n");
+            } else {
+                System.out.println("⚠️ Seed data dosyası çalıştırılamadı (veriler zaten mevcut olabilir)\n");
+            }
             
-            // Issues tablosu
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS Issues (" +
-                "issue_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "user_id INT, " +
-                "category_id INT, " +
-                "title VARCHAR(100) NOT NULL, " +
-                "description TEXT, " +
-                "status ENUM('Yeni', 'İnceleniyor', 'Çözüldü') DEFAULT 'Yeni', " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "FOREIGN KEY (user_id) REFERENCES Users(user_id), " +
-                "FOREIGN KEY (category_id) REFERENCES Categories(category_id)" +
-                ")"
-            );
+            // 3. Triggers
+            System.out.println("📄 triggers.sql çalıştırılıyor...");
+            if (executeSqlFile(stmt, SQL_DIR + "/triggers.sql")) {
+                System.out.println("✅ Trigger'lar oluşturuldu!\n");
+            } else {
+                System.out.println("⚠️ Trigger dosyası çalıştırılamadı\n");
+            }
             
-            // Projects tablosu
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS Projects (" +
-                "project_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "title VARCHAR(150) NOT NULL, " +
-                "description TEXT, " +
-                "start_date DATE, " +
-                "end_date DATE, " +
-                "status ENUM('Açık', 'Kapalı', 'Tamamlandı') DEFAULT 'Açık', " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ")"
-            );
-            
-            // Applications tablosu
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS Applications (" +
-                "application_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "project_id INT, " +
-                "user_id INT, " +
-                "application_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "status ENUM('Beklemede', 'Onaylandı', 'Reddedildi') DEFAULT 'Beklemede', " +
-                "notes TEXT, " +
-                "FOREIGN KEY (project_id) REFERENCES Projects(project_id), " +
-                "FOREIGN KEY (user_id) REFERENCES Users(user_id)" +
-                ")"
-            );
-            
-            System.out.println("✅ Tüm tablolar oluşturuldu!");
-            
-            // Örnek verileri ekle (eğer yoksa)
-            insertSampleData(stmt);
+            // 4. Procedures
+            System.out.println("📄 procedures.sql çalıştırılıyor...");
+            if (executeSqlFile(stmt, SQL_DIR + "/procedures.sql")) {
+                System.out.println("✅ Stored procedure'lar oluşturuldu!\n");
+            } else {
+                System.out.println("⚠️ Procedure dosyası çalıştırılamadı\n");
+            }
             
             stmt.close();
             conn.close();
@@ -138,43 +106,96 @@ public class DatabaseSetup {
     }
     
     /**
-     * Örnek verileri ekler
+     * SQL dosyasını okur ve çalıştırır
+     * DELIMITER komutlarını ve çok satırlı SQL komutlarını destekler
+     * 
+     * @param stmt Statement nesnesi
+     * @param filePath SQL dosyasının yolu
+     * @return Başarılıysa true
      */
-    private static void insertSampleData(Statement stmt) throws Exception {
-        System.out.println("📝 Örnek veriler ekleniyor...");
-        
-        // Kullanıcılar (eğer yoksa)
+    private static boolean executeSqlFile(Statement stmt, String filePath) {
         try {
-            stmt.executeUpdate(
-                "INSERT IGNORE INTO Users (username, password_hash, role, full_name) VALUES " +
-                "('admin_elif', '123456', 'ADMIN', 'Elif Admin'), " +
-                "('vatandas_ali', '654321', 'CITIZEN', 'Ali Vatandas')"
-            );
+            // Dosya yolunu oluştur (proje kök dizininden)
+            File sqlFile = new File(filePath);
+            
+            // Eğer dosya bulunamazsa, SmartCityPlatform klasörü altında ara
+            if (!sqlFile.exists()) {
+                sqlFile = new File("SmartCityPlatform/" + filePath);
+            }
+            
+            if (!sqlFile.exists()) {
+                System.out.println("⚠️ Dosya bulunamadı: " + filePath);
+                return false;
+            }
+            
+            BufferedReader reader = new BufferedReader(new FileReader(sqlFile));
+            StringBuilder sql = new StringBuilder();
+            String line;
+            String delimiter = ";";
+            boolean inDelimiterBlock = false;
+            String currentDelimiter = ";";
+            
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                
+                // Boş satırları ve yorumları atla
+                if (line.isEmpty() || line.startsWith("--")) {
+                    continue;
+                }
+                
+                // DELIMITER komutunu işle
+                if (line.toUpperCase().startsWith("DELIMITER")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length > 1) {
+                        currentDelimiter = parts[1];
+                        if (!currentDelimiter.equals(";")) {
+                            inDelimiterBlock = true;
+                        } else {
+                            inDelimiterBlock = false;
+                        }
+                    }
+                    continue;
+                }
+                
+                // USE komutunu ayrı çalıştır (zaten USE yapıldığı için atlayabiliriz)
+                if (line.toUpperCase().startsWith("USE ")) {
+                    continue;
+                }
+                
+                sql.append(line).append(" ");
+                
+                // Delimiter'a göre komutun bitip bitmediğini kontrol et
+                if (line.endsWith(currentDelimiter)) {
+                    String sqlCommand = sql.toString().trim();
+                    // Delimiter'ı kaldır
+                    if (sqlCommand.endsWith(currentDelimiter)) {
+                        sqlCommand = sqlCommand.substring(0, sqlCommand.length() - currentDelimiter.length()).trim();
+                    }
+                    
+                    if (!sqlCommand.isEmpty()) {
+                        try {
+                            // Çok satırlı komutlar için execute kullan
+                            stmt.execute(sqlCommand);
+                        } catch (Exception e) {
+                            // Bazı hatalar normal olabilir (örn: zaten var olan trigger/procedure)
+                            // Sadece kritik hataları göster
+                            if (!e.getMessage().contains("already exists") && 
+                                !e.getMessage().contains("Duplicate")) {
+                                System.out.println("⚠️ SQL komutu hatası: " + e.getMessage());
+                            }
+                        }
+                    }
+                    sql.setLength(0); // StringBuilder'ı temizle
+                }
+            }
+            
+            reader.close();
+            return true;
+            
         } catch (Exception e) {
-            // Zaten varsa hata verme
+            System.out.println("❌ SQL dosyası okuma hatası (" + filePath + "): " + e.getMessage());
+            return false;
         }
-        
-        // Kategoriler
-        try {
-            stmt.executeUpdate(
-                "INSERT IGNORE INTO Categories (name, responsible_unit) VALUES " +
-                "('Ulaşım', 'Ulaşım Daire Başkanlığı'), " +
-                "('Çevre ve Temizlik', 'Atık Yönetimi Birimi'), " +
-                "('Altyapı', 'Fen İşleri Müdürlüğü'), " +
-                "('Sosyal Hizmetler', 'Sosyal İşler Daire Başkanlığı')"
-            );
-        } catch (Exception e) {}
-        
-        // Projeler
-        try {
-            stmt.executeUpdate(
-                "INSERT IGNORE INTO Projects (title, description, start_date, end_date, status) VALUES " +
-                "('Akıllı Bisiklet Yolu', 'Şehir merkezine 10km kesintisiz bisiklet yolu yapımı.', '2024-01-01', '2024-06-01', 'Açık'), " +
-                "('Sıfır Atık Kampanyası', 'Mahalle bazlı geri dönüşüm eğitimi ve kutu dağıtımı.', '2024-02-15', '2024-05-15', 'Açık')"
-            );
-        } catch (Exception e) {}
-        
-        System.out.println("✅ Örnek veriler eklendi!");
     }
 }
 

@@ -40,4 +40,45 @@ public class IssueService {
     public List<Issue> getAllIssuesForAdmin() {
         return issueDAO.getAllIssues();
     }
+    
+    /**
+     * Kategori başarı raporunu gösterir (Stored Procedure kullanarak)
+     * 
+     * @author Elif
+     */
+    public void printCategoryReport() {
+        issueDAO.printCategoryReport();
+    }
+    
+    /**
+     * Belirli bir kategorideki bekleyen şikayetleri getirir (Stored Procedure kullanarak)
+     * 
+     * @param categoryId Kategori ID'si
+     * @return Bekleyen şikayetler listesi
+     * @author Elif
+     */
+    public List<Issue> getPendingIssuesByCategory(int categoryId) {
+        return issueDAO.getPendingIssuesByCategory(categoryId);
+    }
+    
+    /**
+     * Kullanıcının duruma göre şikayetlerini getirir (Stored Procedure kullanarak)
+     * 
+     * @param userId Kullanıcı ID'si
+     * @param status Şikayet durumu (Yeni, İnceleniyor, Çözüldü)
+     * @return Kullanıcının şikayetleri listesi
+     * @author Elif
+     */
+    public List<Issue> getUserIssuesByStatus(int userId, String status) {
+        return issueDAO.getUserIssuesByStatus(userId, status);
+    }
+    
+    /**
+     * Son 30 günün günlük istatistiklerini gösterir (Stored Procedure kullanarak)
+     * 
+     * @author Elif
+     */
+    public void printMonthlyStats() {
+        issueDAO.printMonthlyStats();
+    }
 }

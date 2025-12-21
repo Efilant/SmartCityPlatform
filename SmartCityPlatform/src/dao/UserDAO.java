@@ -1,5 +1,6 @@
 package dao;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -86,4 +87,28 @@ public class UserDAO {
     } catch (SQLException e) { e.printStackTrace(); }
     return null;
 }
+    
+    /**
+     * Kullanıcı aktivite özetini gösterir (Stored Procedure kullanarak)
+     * GetUserActivitySummary() stored procedure'ını kullanır
+     * 
+     * @param userId Kullanıcı ID'si
+     * @author Elif
+     */
+    public void printUserActivitySummary(int userId) {
+        try (Connection conn = util.DBConnection.getConnection();
+             CallableStatement cstmt = conn.prepareCall("{CALL GetUserActivitySummary(?)}")) {
+            
+            cstmt.setInt(1, userId);
+            ResultSet rs = cstmt.executeQuery();
+            
+            if (rs.next()) {
+                System.out.println("\n--- KULLANICI AKTİVİTE ÖZETİ ---");
+                System.out.println("Şikayet Sayısı: " + rs.getInt("sikayet_sayisi"));
+                System.out.println("Başvuru Sayısı: " + rs.getInt("basvuru_sayisi"));
+            }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
+    }
 }

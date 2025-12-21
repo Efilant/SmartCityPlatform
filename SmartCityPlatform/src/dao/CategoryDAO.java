@@ -1,10 +1,10 @@
 package dao;
 
-import util.DBConnection;
-import models.Category;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import models.Category;
+import util.DBConnection;
 
 public class CategoryDAO {
     
@@ -42,5 +42,37 @@ public class CategoryDAO {
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return null;
+    }
+    
+    /**
+     * En çok şikayet alan kategorileri getirir (Stored Procedure kullanarak)
+     * GetTopCategories() stored procedure'ını kullanır
+     * 
+     * @param limit Kaç kategori gösterilecek (örn: 5)
+     * @author Elif
+     */
+    public void printTopCategories(int limit) {
+        try (Connection conn = DBConnection.getConnection();
+             CallableStatement cstmt = conn.prepareCall("{CALL GetTopCategories(?)}")) {
+            
+            cstmt.setInt(1, limit);
+            ResultSet rs = cstmt.executeQuery();
+            
+            System.out.println("\n--- EN ÇOK ŞİKAYET ALAN KATEGORİLER (Top " + limit + ") ---");
+            System.out.println("Kategori | Toplam Şikayet | Çözülen | Sorumlu Birim");
+            System.out.println("--------------------------------------------------------");
+            
+            while (rs.next()) {
+                String kategori = rs.getString("kategori_adi");
+                int toplam = rs.getInt("toplam_sikayet");
+                int cozulen = rs.getInt("cozulen_sikayet");
+                String sorumlu = rs.getString("sorumlu_birim");
+                
+                System.out.printf("%-15s | %-15d | %-7d | %s\n", 
+                    kategori, toplam, cozulen, sorumlu != null ? sorumlu : "Belirtilmemiş");
+            }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
 }

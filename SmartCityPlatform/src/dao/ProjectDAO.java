@@ -48,21 +48,26 @@ public class ProjectDAO {
         e.printStackTrace();
     }
 }
-    // Aktif proje ve bekleyen başvuru sayılarını döndürür
-public void printDashboardSummary() {
-    String query = "SELECT " +
-                   "(SELECT COUNT(*) FROM Projects WHERE status = 'Açık') as active_projects, " +
-                   "(SELECT COUNT(*) FROM Applications WHERE status = 'Beklemede') as pending_apps";
-
-    try (Connection conn = util.DBConnection.getConnection();
-         Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery(query)) {
-        
-        if (rs.next()) {
-            System.out.println("\n--- YÖNETİCİ ÖZET PANELİ ---");
-            System.out.println("Aktif Proje Sayısı: " + rs.getInt("active_projects"));
-            System.out.println("Onay Bekleyen Başvuru: " + rs.getInt("pending_apps"));
+    /**
+     * Aktif proje ve bekleyen başvuru sayılarını döndürür (Stored Procedure kullanarak)
+     * GetSystemStats() stored procedure'ını kullanır
+     * 
+     * @author Elif
+     */
+    public void printDashboardSummary() {
+        try (Connection conn = util.DBConnection.getConnection();
+             CallableStatement cstmt = conn.prepareCall("{CALL GetSystemStats()}")) {
+            
+            ResultSet rs = cstmt.executeQuery();
+            
+            if (rs.next()) {
+                System.out.println("\n--- YÖNETİCİ ÖZET PANELİ ---");
+                System.out.println("Toplam Şikayet Sayısı: " + rs.getInt("total_issues"));
+                System.out.println("Aktif Proje Sayısı: " + rs.getInt("active_projects"));
+                System.out.println("Toplam Başvuru Sayısı: " + rs.getInt("total_applications"));
+            }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
         }
-    } catch (SQLException e) { e.printStackTrace(); }
-}
+    }
 }
