@@ -26,7 +26,7 @@ public class DatabaseSetup {
     // Şifreyi DBConnection'dan al (tek yerden yönetim için)
     private static String getPassword() {
         // DBConnection.java'daki şifreyi buraya yazın (DBConnection ile aynı olmalı)
-        return ""; // MySQL şifreniz (DBConnection ile aynı olmalı)
+        return "schule336"; // MySQL şifreniz (DBConnection ile aynı olmalı)
     }
     
     /**

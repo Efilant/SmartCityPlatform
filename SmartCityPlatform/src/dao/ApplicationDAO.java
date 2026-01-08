@@ -82,4 +82,44 @@ public class ApplicationDAO {
             e.printStackTrace(); 
         }
     }
+    // Kullanıcıya Ait Başvuruları Listeleme (findByUserId)
+public void findByUserId(int userId) {
+    String query = """
+        SELECT a.application_id, p.title, a.status, a.application_date
+        FROM Applications a
+        JOIN Projects p ON a.project_id = p.project_id
+        WHERE a.user_id = ?
+        ORDER BY a.application_date DESC
+    """;
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+        pstmt.setInt(1, userId);
+        ResultSet rs = pstmt.executeQuery();
+
+        System.out.println("\n--- BAŞVURULARIM ---");
+        System.out.println("ID | Proje | Durum | Tarih");
+        System.out.println("--------------------------------");
+
+        boolean hasData = false;
+        while (rs.next()) {
+            hasData = true;
+            System.out.printf(
+                "%d | %s | %s | %s\n",
+                rs.getInt("application_id"),
+                rs.getString("title"),
+                rs.getString("status"),
+                rs.getString("application_date")
+            );
+        }
+
+        if (!hasData) {
+            System.out.println("Henüz herhangi bir başvurunuz yok.");
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
 }

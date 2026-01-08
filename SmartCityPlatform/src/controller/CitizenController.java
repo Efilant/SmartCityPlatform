@@ -155,11 +155,9 @@ public class CitizenController {
      * @author Esma
      */
     public void viewMyApplications(int userId) {
-        // Bu metod için ApplicationDAO'da findByUserId metodu olmalıdır
-        // Şimdilik basit bir mesaj gösteriyoruz
-        System.out.println("📋 Başvurularınız görüntüleniyor...");
-        System.out.println("(Not: Bu özellik için ApplicationDAO'ya findByUserId metodu eklenmelidir)");
-    }
+    System.out.println("📋 Başvurularınız görüntüleniyor...");
+    applicationDAO.findByUserId(userId);
+}
     
     /**
      * Kullanıcının duruma göre şikayetlerini görüntüleme (Stored Procedure kullanarak)
