@@ -43,19 +43,16 @@
                             <input type="text" id="registerUsername" required>
                         </div>
                         <div class="form-group">
-                            <label for="registerPassword">Şifre (Min. 4 karakter)</label>
-                            <input type="password" id="registerPassword" required minlength="4">
+                            <label for="registerPassword">Şifre</label>
+                            <input type="password" id="registerPassword" required minlength="8">
+                            <small class="password-hint" style="display: block; margin-top: 5px; color: #666; font-size: 12px;">
+                                Şifre en az 8 karakter olmalı ve büyük harf, küçük harf, rakam ve özel karakter içermelidir.
+                            </small>
+                            <div id="passwordStrength" style="margin-top: 5px; font-size: 12px;"></div>
                         </div>
                         <div class="form-group">
                             <label for="registerFullName">Tam Adınız</label>
                             <input type="text" id="registerFullName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerRole">Rol Seçiniz</label>
-                            <select id="registerRole" required>
-                                <option value="CITIZEN">Vatandaş</option>
-                                <option value="ADMIN">Yönetici</option>
-                            </select>
                         </div>
                         <button type="submit" class="btn btn-primary">Kayıt Ol</button>
                     </form>

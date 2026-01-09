@@ -23,6 +23,7 @@
             <ul class="horizontal-menu-list">
                 <li><a href="#" onclick="showSection('dashboard', event)" class="menu-item active">📊 Dashboard</a></li>
                 <li><a href="#" onclick="showSection('allIssues', event)" class="menu-item">📋 Tüm Şikayetler</a></li>
+                <li><a href="#" onclick="showSection('projects', event)" class="menu-item">📁 Proje Yönetimi</a></li>
                 <li><a href="#" onclick="showSection('createProject', event)" class="menu-item">➕ Yeni Proje</a></li>
                 <li><a href="#" onclick="showSection('applications', event)" class="menu-item">📩 Başvurular</a></li>
                 <li><a href="#" onclick="showSection('reports', event)" class="menu-item">📈 Raporlar</a></li>
@@ -157,6 +158,48 @@
                     </div>
                 </section>
 
+                <!-- Projects Management Section -->
+                <section id="projects" class="content-section">
+                    <div class="issues-header">
+                        <div>
+                            <h2>📁 Proje Yönetimi</h2>
+                            <p class="subtitle" id="projectsCount">Yükleniyor...</p>
+                        </div>
+                        <button onclick="loadAllProjects()" class="btn btn-primary btn-refresh">
+                            🔄 Yenile
+                        </button>
+                    </div>
+
+                    <!-- Projects Table -->
+                    <div class="issues-table-container">
+                        <table class="issues-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Başlık</th>
+                                    <th>Açıklama</th>
+                                    <th>Durum</th>
+                                    <th>Başlangıç</th>
+                                    <th>Bitiş</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectsList">
+                                <tr>
+                                    <td colspan="7" class="loading-cell">Projeler yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="projectsEmptyState" class="empty-state" style="display: none;">
+                        <div class="empty-icon">📭</div>
+                        <h3>Proje Bulunamadı</h3>
+                        <p>Henüz hiç proje oluşturulmamış.</p>
+                    </div>
+                </section>
+
                 <!-- Create Project Section -->
                 <section id="createProject" class="content-section">
                     <h2>Yeni Proje Oluştur</h2>
@@ -217,6 +260,47 @@
             <span class="close" onclick="closeIssueModal()">&times;</span>
             <h2>Şikayet Detayları</h2>
             <div id="issueModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Project Edit Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProjectModal()">&times;</span>
+            <h2>Proje Düzenle</h2>
+            <form id="editProjectForm" class="form-card">
+                <input type="hidden" id="editProjectId">
+                <div class="form-group">
+                    <label for="editProjectTitle">Proje Başlığı</label>
+                    <input type="text" id="editProjectTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProjectDescription">Açıklama</label>
+                    <textarea id="editProjectDescription" rows="5" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProjectStartDate">Başlangıç Tarihi</label>
+                        <input type="date" id="editProjectStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProjectEndDate">Bitiş Tarihi</label>
+                        <input type="date" id="editProjectEndDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editProjectStatus">Durum</label>
+                    <select id="editProjectStatus" required>
+                        <option value="Açık">Açık</option>
+                        <option value="Kapalı">Kapalı</option>
+                        <option value="Tamamlandı">Tamamlandı</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                    <button type="button" onclick="closeProjectModal()" class="btn btn-secondary">İptal</button>
+                </div>
+            </form>
         </div>
     </div>
 

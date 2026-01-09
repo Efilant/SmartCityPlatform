@@ -22,6 +22,31 @@ public class ProjectDAO {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
+    // Tüm Projeleri Getirme (findAll) - Project nesneleri döndürür
+    public List<Project> findAll() {
+        List<Project> projects = new ArrayList<>();
+        String query = "SELECT project_id, title, description, start_date, end_date, status FROM Projects ORDER BY project_id DESC";
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                Project project = new Project();
+                project.setProjectId(rs.getInt("project_id"));
+                project.setTitle(rs.getString("title"));
+                project.setDescription(rs.getString("description"));
+                project.setStatus(rs.getString("status"));
+                if (rs.getDate("start_date") != null) {
+                    project.setStartDate(rs.getDate("start_date"));
+                }
+                if (rs.getDate("end_date") != null) {
+                    project.setEndDate(rs.getDate("end_date"));
+                }
+                projects.add(project);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return projects;
+    }
+    
     // Açık Projeleri Getirme (findAllOpen) - Project nesneleri döndürür
     public List<Project> findAllOpen() {
         List<Project> projects = new ArrayList<>();
@@ -74,6 +99,42 @@ public class ProjectDAO {
         e.printStackTrace();
     }
 }
+
+    // Proje Güncelleme (update)
+    public void update(int projectId, String title, String description, String startDate, String endDate) {
+        String query = "UPDATE Projects SET title = ?, description = ?, start_date = ?, end_date = ? WHERE project_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, title);
+            pstmt.setString(2, description);
+            pstmt.setString(3, startDate);
+            pstmt.setString(4, endDate);
+            pstmt.setInt(5, projectId);
+            pstmt.executeUpdate();
+            System.out.println("Proje başarıyla güncellendi! ✅");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Proje güncellenirken bir hata oluştu: " + e.getMessage());
+        }
+    }
+
+    // Proje Silme (delete)
+    public void delete(int projectId) {
+        String query = "DELETE FROM Projects WHERE project_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, projectId);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Proje başarıyla silindi! 🗑️");
+            } else {
+                throw new RuntimeException("Proje bulunamadı!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Proje silinirken bir hata oluştu: " + e.getMessage());
+        }
+    }
     /**
      * Aktif proje ve bekleyen başvuru sayılarını döndürür (Stored Procedure kullanarak)
      * GetSystemStats() stored procedure'ını kullanır

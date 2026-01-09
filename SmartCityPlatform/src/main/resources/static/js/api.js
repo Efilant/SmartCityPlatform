@@ -111,10 +111,27 @@ const ProjectsAPI = {
         return apiRequest('/projects/open');
     },
     
+    getAll: async () => {
+        return apiRequest('/admin/projects');
+    },
+    
     create: async (title, description, startDate, endDate) => {
         return apiRequest('/admin/projects', {
             method: 'POST',
             body: JSON.stringify({ title, description, startDate, endDate })
+        });
+    },
+    
+    update: async (projectId, title, description, startDate, endDate) => {
+        return apiRequest(`/admin/projects/${projectId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ title, description, startDate, endDate })
+        });
+    },
+    
+    delete: async (projectId) => {
+        return apiRequest(`/admin/projects/${projectId}`, {
+            method: 'DELETE'
         });
     },
     
@@ -123,11 +140,6 @@ const ProjectsAPI = {
             method: 'PUT',
             body: JSON.stringify({ status })
         });
-    },
-    
-    getAll: async () => {
-        // This endpoint doesn't exist yet, we'll use getOpenProjects for now
-        return apiRequest('/projects/open');
     }
 };
 

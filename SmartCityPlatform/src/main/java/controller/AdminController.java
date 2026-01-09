@@ -181,6 +181,30 @@ public class AdminController {
     }
     
     /**
+     * Tüm Projeleri Listeleme
+     * REST Endpoint: GET /api/admin/projects
+     * 
+     * @return JSON response: {"success": true, "projects": [...]}
+     * @author Elif
+     */
+    @GetMapping("/projects")
+    public ResponseEntity<Map<String, Object>> getAllProjects() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<models.Project> projects = projectDAO.findAll();
+            response.put("success", true);
+            response.put("projects", projects);
+            response.put("count", projects.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Projeler listelenirken bir hata oluştu: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
      * Yeni Proje Oluşturma
      * REST Endpoint: POST /api/admin/projects
      * 
@@ -226,6 +250,94 @@ public class AdminController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Proje oluşturulurken bir hata oluştu: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
+     * Proje Güncelleme
+     * REST Endpoint: PUT /api/admin/projects/{projectId}
+     * 
+     * @param projectId Proje ID'si (path variable)
+     * @param requestBody JSON body: {"title": "...", "description": "...", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD"}
+     * @return JSON response: {"success": true/false, "message": "..."}
+     * @author Elif
+     */
+    @PutMapping("/projects/{projectId}")
+    public ResponseEntity<Map<String, Object>> updateProject(
+            @PathVariable int projectId,
+            @RequestBody Map<String, String> requestBody) {
+        Map<String, Object> response = new HashMap<>();
+        
+        String title = requestBody.get("title");
+        String description = requestBody.get("description");
+        String startDate = requestBody.get("startDate");
+        String endDate = requestBody.get("endDate");
+        
+        // Validasyon işlemleri
+        if (projectId <= 0) {
+            response.put("success", false);
+            response.put("message", "Geçersiz proje ID!");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        if (title == null || title.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Proje başlığı boş olamaz!");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        if (description == null || description.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Proje açıklaması boş olamaz!");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        if (startDate == null || endDate == null) {
+            response.put("success", false);
+            response.put("message", "Başlangıç ve bitiş tarihleri belirtilmelidir!");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        try {
+            projectDAO.update(projectId, title, description, startDate, endDate);
+            response.put("success", true);
+            response.put("message", "Proje başarıyla güncellendi!");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Proje güncellenirken bir hata oluştu: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
+     * Proje Silme
+     * REST Endpoint: DELETE /api/admin/projects/{projectId}
+     * 
+     * @param projectId Proje ID'si (path variable)
+     * @return JSON response: {"success": true/false, "message": "..."}
+     * @author Elif
+     */
+    @DeleteMapping("/projects/{projectId}")
+    public ResponseEntity<Map<String, Object>> deleteProject(@PathVariable int projectId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        // Validasyon işlemleri
+        if (projectId <= 0) {
+            response.put("success", false);
+            response.put("message", "Geçersiz proje ID!");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        try {
+            projectDAO.delete(projectId);
+            response.put("success", true);
+            response.put("message", "Proje başarıyla silindi!");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Proje silinirken bir hata oluştu: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

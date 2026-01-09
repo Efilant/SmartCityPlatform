@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import util.DatabaseSetup;
+import util.DuplicateCleaner;
 
 /**
  * Smart City Platform - REST API Ana Uygulama Sınıfı
@@ -27,6 +28,9 @@ public class App {
             System.out.println("💡 İpucu: XAMPP/WAMP kullanıyorsanız, MySQL servisinin başlatıldığından emin olun.");
             return;
         }
+        
+        // Duplicate kayıtları temizle
+        DuplicateCleaner.cleanDuplicates();
         
         System.out.println("\n========================================");
         System.out.println("  REST API SUNUCUSU BAŞLATILIYOR");

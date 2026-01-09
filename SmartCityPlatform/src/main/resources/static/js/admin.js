@@ -219,6 +219,10 @@ document.getElementById('createProjectForm').addEventListener('submit', async (e
         showMessage('Proje başarıyla oluşturuldu!', 'success');
         document.getElementById('createProjectForm').reset();
         loadProjects();
+        // Also refresh projects list if we're on that section
+        if (document.getElementById('projects') && document.getElementById('projects').classList.contains('active')) {
+            loadAllProjects();
+        }
     } catch (error) {
         showMessage(error.message || 'Proje oluşturulurken bir hata oluştu!', 'error');
     }
@@ -244,6 +248,157 @@ async function loadProjects() {
         // Silent fail
     }
 }
+
+// Load all projects for management
+async function loadAllProjects() {
+    const projectsList = document.getElementById('projectsList');
+    const projectsEmptyState = document.getElementById('projectsEmptyState');
+    const projectsCount = document.getElementById('projectsCount');
+    
+    if (!projectsList) {
+        return;
+    }
+    
+    projectsList.innerHTML = '<tr><td colspan="7" class="loading-cell">Projeler yükleniyor...</td></tr>';
+    
+    try {
+        const response = await ProjectsAPI.getAll();
+        const projects = response.projects || [];
+        
+        if (projectsCount) {
+            projectsCount.textContent = `${projects.length} proje bulundu`;
+        }
+        
+        if (projects.length === 0) {
+            projectsList.innerHTML = '';
+            if (projectsEmptyState) projectsEmptyState.style.display = 'block';
+            return;
+        }
+        
+        if (projectsEmptyState) projectsEmptyState.style.display = 'none';
+        
+        const tableRows = projects.map(project => {
+            const projectId = project.projectId || project.project_id;
+            const title = escapeHtml(project.title || 'Başlıksız');
+            const description = project.description ? escapeHtml(project.description.substring(0, 100)) + (project.description.length > 100 ? '...' : '') : '-';
+            const status = project.status || 'Açık';
+            const startDate = project.startDate ? formatDate(project.startDate) : '-';
+            const endDate = project.endDate ? formatDate(project.endDate) : '-';
+            
+            return `
+                <tr>
+                    <td class="issue-id">#${projectId}</td>
+                    <td><strong>${title}</strong></td>
+                    <td>${description}</td>
+                    <td><span class="status ${status}">${status}</span></td>
+                    <td class="date-cell">${startDate}</td>
+                    <td class="date-cell">${endDate}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button onclick="editProject(${projectId})" class="btn btn-small btn-primary">✏️ Düzenle</button>
+                            <button onclick="deleteProject(${projectId})" class="btn btn-small btn-danger">🗑️ Sil</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        projectsList.innerHTML = tableRows;
+    } catch (error) {
+        projectsList.innerHTML = '<tr><td colspan="7" class="loading-cell">Projeler yüklenirken bir hata oluştu.</td></tr>';
+        showMessage('Projeler yüklenirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+    }
+}
+
+// Edit project
+async function editProject(projectId) {
+    try {
+        const response = await ProjectsAPI.getAll();
+        const projects = response.projects || [];
+        const project = projects.find(p => (p.projectId || p.project_id) == projectId);
+        
+        if (!project) {
+            showMessage('Proje bulunamadı!', 'error');
+            return;
+        }
+        
+        // Fill modal with project data
+        document.getElementById('editProjectId').value = projectId;
+        document.getElementById('editProjectTitle').value = project.title || '';
+        document.getElementById('editProjectDescription').value = project.description || '';
+        
+        // Format dates for input (YYYY-MM-DD)
+        if (project.startDate) {
+            const startDate = new Date(project.startDate);
+            document.getElementById('editProjectStartDate').value = startDate.toISOString().split('T')[0];
+        }
+        if (project.endDate) {
+            const endDate = new Date(project.endDate);
+            document.getElementById('editProjectEndDate').value = endDate.toISOString().split('T')[0];
+        }
+        
+        document.getElementById('editProjectStatus').value = project.status || 'Açık';
+        
+        // Show modal
+        document.getElementById('projectModal').style.display = 'block';
+    } catch (error) {
+        showMessage('Proje bilgileri yüklenirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+    }
+}
+
+// Delete project
+async function deleteProject(projectId) {
+    if (!confirm('Bu projeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
+        return;
+    }
+    
+    try {
+        await ProjectsAPI.delete(projectId);
+        showMessage('Proje başarıyla silindi!', 'success');
+        loadAllProjects();
+    } catch (error) {
+        showMessage('Proje silinirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+    }
+}
+
+// Close project modal
+function closeProjectModal() {
+    document.getElementById('projectModal').style.display = 'none';
+    document.getElementById('editProjectForm').reset();
+}
+
+// Edit project form handler
+document.addEventListener('DOMContentLoaded', () => {
+    const editProjectForm = document.getElementById('editProjectForm');
+    if (editProjectForm) {
+        editProjectForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const projectId = document.getElementById('editProjectId').value;
+            const title = document.getElementById('editProjectTitle').value;
+            const description = document.getElementById('editProjectDescription').value;
+            const startDate = document.getElementById('editProjectStartDate').value;
+            const endDate = document.getElementById('editProjectEndDate').value;
+            const status = document.getElementById('editProjectStatus').value;
+            
+            try {
+                // Update project details
+                await ProjectsAPI.update(projectId, title, description, startDate, endDate);
+                
+                // Update status if changed
+                // Note: We might need to get the current project status first
+                // For now, we'll update status separately
+                await ProjectsAPI.updateStatus(projectId, status);
+                
+                showMessage('Proje başarıyla güncellendi!', 'success');
+                closeProjectModal();
+                loadAllProjects();
+            } catch (error) {
+                showMessage('Proje güncellenirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+            }
+        });
+    }
+});
 
 // Load project applications
 async function loadProjectApplications() {
@@ -597,6 +752,8 @@ function showSection(sectionId, event) {
         loadCategories().then(() => {
             loadAllIssues();
         });
+    } else if (sectionId === 'projects') {
+        loadAllProjects();
     } else if (sectionId === 'applications') {
         loadProjects();
     } else if (sectionId === 'dashboard') {

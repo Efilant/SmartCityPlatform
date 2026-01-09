@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.UserService;
+import util.PasswordValidator;
 
 /**
  * AuthController - Kimlik Doğrulama REST Controller'ı
@@ -108,9 +109,17 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
         
-        if (password == null || password.trim().isEmpty() || password.length() < 4) {
+        // Şifre validasyonu - Klasik şifre gereksinimleri
+        if (password == null || password.trim().isEmpty()) {
             response.put("success", false);
-            response.put("message", "Şifre en az 4 karakter olmalıdır!");
+            response.put("message", "Şifre boş olamaz!");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        String passwordError = PasswordValidator.getValidationError(password);
+        if (passwordError != null) {
+            response.put("success", false);
+            response.put("message", passwordError);
             return ResponseEntity.badRequest().body(response);
         }
         
