@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetici Paneli - Akıllı Şehir Platformu</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2>🏙️ Akıllı Şehir Platformu - Yönetici Paneli</h2>
+            <div class="nav-user">
+                <span id="userName">Admin</span>
+                <button onclick="logout()" class="btn btn-secondary">Çıkış</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Yatay Menü -->
+    <nav class="horizontal-menu">
+        <div class="menu-container">
+            <ul class="horizontal-menu-list">
+                <li><a href="#" onclick="showSection('dashboard', event)" class="menu-item active">📊 Dashboard</a></li>
+                <li><a href="#" onclick="showSection('allIssues', event)" class="menu-item">📋 Tüm Şikayetler</a></li>
+                <li><a href="#" onclick="showSection('createProject', event)" class="menu-item">➕ Yeni Proje</a></li>
+                <li><a href="#" onclick="showSection('applications', event)" class="menu-item">📩 Başvurular</a></li>
+                <li><a href="#" onclick="showSection('reports', event)" class="menu-item">📈 Raporlar</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard-full">
+            <main class="main-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="content-section active">
+                    <h2>Analitik Dashboard</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Toplam Şikayet</h3>
+                            <p id="totalIssues" class="stat-number">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Aktif Projeler</h3>
+                            <p id="activeProjects" class="stat-number">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Toplam Başvuru</h3>
+                            <p id="totalApplications" class="stat-number">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Bekleyen Şikayetler</h3>
+                            <p id="pendingIssues" class="stat-number">-</p>
+                        </div>
+                    </div>
+                    <button onclick="loadAnalytics()" class="btn btn-primary">Dashboard'u Yenile</button>
+                </section>
+
+                <!-- All Issues Section -->
+                <section id="allIssues" class="content-section">
+                    <div class="issues-header">
+                        <div>
+                            <h2>📋 Tüm Şikayetler</h2>
+                            <p class="subtitle" id="issuesCount">Yükleniyor...</p>
+                        </div>
+                        <button onclick="loadAllIssues()" class="btn btn-primary btn-refresh">
+                            🔄 Yenile
+                        </button>
+                    </div>
+
+                    <!-- İstatistikler -->
+                    <div class="issues-stats">
+                        <div class="stat-item">
+                            <span class="stat-icon">🆕</span>
+                            <div>
+                                <span class="stat-value" id="statNew">0</span>
+                                <span class="stat-label">Yeni</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">🔍</span>
+                            <div>
+                                <span class="stat-value" id="statInProgress">0</span>
+                                <span class="stat-label">İnceleniyor</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">✅</span>
+                            <div>
+                                <span class="stat-value" id="statResolved">0</span>
+                                <span class="stat-label">Çözüldü</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtreler ve Arama -->
+                    <div class="issues-filters">
+                        <div class="filter-group">
+                            <label for="searchInput" class="filter-label">🔍 Arama</label>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Başlık veya açıklamada ara..." onkeyup="filterIssues()">
+                        </div>
+                        <div class="filter-group">
+                            <label for="categoryFilter" class="filter-label">📁 Kategori</label>
+                            <select id="categoryFilter" class="filter-select" onchange="loadAllIssues()">
+                                <option value="">Tümü</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="adminStatusFilter" class="filter-label">📊 Durum</label>
+                            <select id="adminStatusFilter" class="filter-select" onchange="loadAllIssues()">
+                                <option value="">Tümü</option>
+                                <option value="Yeni">Yeni</option>
+                                <option value="İnceleniyor">İnceleniyor</option>
+                                <option value="Çözüldü">Çözüldü</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="priorityFilter" class="filter-label">⚡ Öncelik</label>
+                            <select id="priorityFilter" class="filter-select" onchange="filterIssues()">
+                                <option value="">Tümü</option>
+                                <option value="Yüksek">Yüksek</option>
+                                <option value="Orta">Orta</option>
+                                <option value="Düşük">Düşük</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Şikayetler Tablosu -->
+                    <div class="issues-table-container">
+                        <table class="issues-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Başlık</th>
+                                    <th>Kategori</th>
+                                    <th>Durum</th>
+                                    <th>Öncelik</th>
+                                    <th>Kullanıcı</th>
+                                    <th>Tarih</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allIssuesList">
+                                <tr>
+                                    <td colspan="8" class="loading-cell">Şikayetler yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Boş Durum -->
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <div class="empty-icon">📭</div>
+                        <h3>Şikayet Bulunamadı</h3>
+                        <p>Filtre kriterlerine uygun şikayet bulunmamaktadır.</p>
+                    </div>
+                </section>
+
+                <!-- Create Project Section -->
+                <section id="createProject" class="content-section">
+                    <h2>Yeni Proje Oluştur</h2>
+                    <form id="createProjectForm" class="form-card">
+                        <div class="form-group">
+                            <label for="projectTitle">Proje Başlığı</label>
+                            <input type="text" id="projectTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectDescription">Açıklama</label>
+                            <textarea id="projectDescription" rows="5" required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="projectStartDate">Başlangıç Tarihi</label>
+                                <input type="date" id="projectStartDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="projectEndDate">Bitiş Tarihi</label>
+                                <input type="date" id="projectEndDate" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Proje Oluştur</button>
+                    </form>
+                </section>
+
+                <!-- Applications Section -->
+                <section id="applications" class="content-section">
+                    <h2>Proje Başvuruları</h2>
+                    <div class="form-group">
+                        <label for="projectSelect">Proje Seçin:</label>
+                        <select id="projectSelect" onchange="loadProjectApplications()">
+                            <option value="">Proje seçiniz...</option>
+                        </select>
+                    </div>
+                    <div id="applicationsList" class="cards-container"></div>
+                </section>
+
+                <!-- Reports Section -->
+                <section id="reports" class="content-section">
+                    <h2>Raporlar ve Analitik</h2>
+                    <div class="reports-section">
+                        <button onclick="loadCategoryReport()" class="btn btn-primary">Kategori Başarı Raporu</button>
+                        <button onclick="loadTopCategories()" class="btn btn-primary">En Çok Şikayet Alan Kategoriler</button>
+                        <button onclick="loadMonthlyStats()" class="btn btn-primary">Aylık İstatistikler</button>
+                    </div>
+                    <div id="reportsContent" class="reports-content"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <!-- Issue Detail Modal -->
+    <div id="issueModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeIssueModal()">&times;</span>
+            <h2>Şikayet Detayları</h2>
+            <div id="issueModalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        // categories değişkeni admin.js'de tanımlı, burada tekrar tanımlamaya gerek yok
+
+        window.onload = function() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = JSON.parse(user);
+            if (currentUser.role !== 'ADMIN') {
+                alert('Bu sayfaya erişim yetkiniz yok!');
+                window.location.href = 'citizen-dashboard.html';
+                return;
+            }
+            document.getElementById('userName').textContent = currentUser.fullName;
+            // Fonksiyonlar admin.js'de tanımlı, script yüklendikten sonra çağrılacak
+            setTimeout(() => {
+                if (typeof loadCategories === 'function') loadCategories();
+                if (typeof loadAllIssues === 'function') loadAllIssues();
+                if (typeof loadProjects === 'function') loadProjects();
+                if (typeof loadAnalytics === 'function') loadAnalytics();
+            }, 100);
+        };
+
+        // showSection fonksiyonu admin.js'de tanımlı, burada tekrar tanımlamaya gerek yok
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    </script>
+    <script src="js/api.js?v=2.6"></script>
+    <script src="js/admin.js?v=2.6"></script>
+</body>
+</html>
+

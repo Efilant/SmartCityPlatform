@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vatandaş Paneli - Akıllı Şehir Platformu</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2>🏙️ Akıllı Şehir Platformu</h2>
+            <div class="nav-user">
+                <span id="userName">Kullanıcı</span>
+                <button onclick="logout()" class="btn btn-secondary">Çıkış</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard">
+            <aside class="sidebar">
+                <h3>Menü</h3>
+                <ul class="menu">
+                    <li><a href="#" onclick="showSection('createIssue')" class="menu-item active">📝 Yeni Şikayet</a></li>
+                    <li><a href="#" onclick="showSection('myIssues')" class="menu-item">📋 Şikayetlerim</a></li>
+                    <li><a href="#" onclick="showSection('projects')" class="menu-item">🏗️ Açık Projeler</a></li>
+                    <li><a href="#" onclick="showSection('applications')" class="menu-item">📩 Başvurularım</a></li>
+                </ul>
+            </aside>
+
+            <main class="main-content">
+                <!-- Create Issue Section -->
+                <section id="createIssue" class="content-section active">
+                    <h2>Yeni Şikayet/Talep Oluştur</h2>
+                    <form id="createIssueForm" class="form-card">
+                        <div class="form-group">
+                            <label for="issueTitle">Başlık</label>
+                            <input type="text" id="issueTitle" required placeholder="Şikayet başlığını giriniz">
+                        </div>
+                        <div class="form-group">
+                            <label for="issueCategory">Kategori</label>
+                            <select id="issueCategory" required>
+                                <!-- Kategoriler JavaScript ile dinamik olarak yüklenecek -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="issueDescription">Açıklama</label>
+                            <textarea id="issueDescription" rows="5" required placeholder="Şikayetinizi detaylı olarak açıklayınız"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Şikayeti Gönder</button>
+                    </form>
+                </section>
+
+                <!-- My Issues Section -->
+                <section id="myIssues" class="content-section">
+                    <h2>Şikayetlerim</h2>
+                    <div class="filter-section">
+                        <label>Durum Filtresi:</label>
+                        <select id="statusFilter" onchange="loadMyIssues()">
+                            <option value="">Tümü</option>
+                            <option value="Yeni">Yeni</option>
+                            <option value="İnceleniyor">İnceleniyor</option>
+                            <option value="Çözüldü">Çözüldü</option>
+                        </select>
+                    </div>
+                    <div id="issuesList" class="cards-container"></div>
+                </section>
+
+                <!-- Projects Section -->
+                <section id="projects" class="content-section">
+                    <h2>Açık Projeler</h2>
+                    <div id="projectsList" class="cards-container"></div>
+                </section>
+
+                <!-- Applications Section -->
+                <section id="applications" class="content-section">
+                    <h2>Başvurularım</h2>
+                    <div id="applicationsList" class="cards-container"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <!-- Application Modal -->
+    <div id="applicationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeApplicationModal()">&times;</span>
+            <h2>Projeye Başvur</h2>
+            <p><strong>Proje:</strong> <span id="modalProjectTitle"></span></p>
+            <div class="form-group">
+                <label for="applicationNotes">Başvuru Notunuz (Opsiyonel)</label>
+                <textarea id="applicationNotes" rows="4" placeholder="Başvurunuz hakkında ek bilgi ekleyebilirsiniz..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeApplicationModal()" class="btn btn-secondary">İptal</button>
+                <button onclick="submitApplication()" class="btn btn-primary">Başvur</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let categories = [];
+
+        // Check authentication on load
+        window.onload = function() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = JSON.parse(user);
+            document.getElementById('userName').textContent = currentUser.fullName;
+            loadCategories();
+            loadMyIssues();
+            loadProjects();
+            loadApplications();
+        };
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update menu active state
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Eğer "Yeni Şikayet" bölümüne geçiliyorsa ve kategoriler yüklenmemişse yükle
+            if (sectionId === 'createIssue' && !categoriesLoaded) {
+                loadCategories();
+            }
+            
+            // Eğer "Şikayetlerim" bölümüne geçiliyorsa şikayetleri yükle
+            if (sectionId === 'myIssues') {
+                loadMyIssues();
+            }
+            
+            // Eğer "Açık Projeler" bölümüne geçiliyorsa projeleri yükle
+            if (sectionId === 'projects') {
+                loadProjects();
+            }
+            
+            // Eğer "Başvurularım" bölümüne geçiliyorsa başvuruları yükle
+            if (sectionId === 'applications') {
+                loadApplications();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    </script>
+    <script src="js/api.js"></script>
+    <script src="js/citizen.js"></script>
+</body>
+</html>
+

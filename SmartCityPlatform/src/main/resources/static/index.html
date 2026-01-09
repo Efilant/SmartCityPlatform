@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Şehir Platformu - Giriş</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="logo-section">
+                <h1>🏙️ Akıllı Şehir Platformu</h1>
+                <p>Vatandaş Geri Bildirim ve Yönetim Sistemi</p>
+            </div>
+
+            <div class="form-container">
+                <!-- Login Form -->
+                <div id="loginForm" class="form-section active">
+                    <h2>Giriş Yap</h2>
+                    <form id="loginFormElement">
+                        <div class="form-group">
+                            <label for="loginUsername">Kullanıcı Adı</label>
+                            <input type="text" id="loginUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Şifre</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Giriş Yap</button>
+                    </form>
+                    <p class="switch-form">
+                        Hesabınız yok mu? <a href="#" onclick="showRegister()">Kayıt Ol</a>
+                    </p>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="form-section">
+                    <h2>Kayıt Ol</h2>
+                    <form id="registerFormElement">
+                        <div class="form-group">
+                            <label for="registerUsername">Kullanıcı Adı</label>
+                            <input type="text" id="registerUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Şifre (Min. 4 karakter)</label>
+                            <input type="password" id="registerPassword" required minlength="4">
+                        </div>
+                        <div class="form-group">
+                            <label for="registerFullName">Tam Adınız</label>
+                            <input type="text" id="registerFullName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerRole">Rol Seçiniz</label>
+                            <select id="registerRole" required>
+                                <option value="CITIZEN">Vatandaş</option>
+                                <option value="ADMIN">Yönetici</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+                    </form>
+                    <p class="switch-form">
+                        Zaten hesabınız var mı? <a href="#" onclick="showLogin()">Giriş Yap</a>
+                    </p>
+                </div>
+            </div>
+
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
+

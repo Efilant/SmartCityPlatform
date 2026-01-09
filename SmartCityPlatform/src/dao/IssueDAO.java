@@ -10,20 +10,30 @@ public class IssueDAO {
     
         
     public void createIssue(Issue issue) {
-    String query = "INSERT INTO Issues (user_id, title, description, status) VALUES (?, ?, ?, 'Yeni')";
+        String query;
+        if (issue.getCategoryId() != null) {
+            query = "INSERT INTO Issues (user_id, category_id, title, description, status) VALUES (?, ?, ?, ?, 'Yeni')";
+        } else {
+            query = "INSERT INTO Issues (user_id, title, description, status) VALUES (?, ?, ?, 'Yeni')";
+        }
 
     try (Connection conn = util.DBConnection.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(query)) {
 
-        pstmt.setInt(1, issue.getUserId());
-        pstmt.setString(2, issue.getTitle());
-        pstmt.setString(3, issue.getDescription());
+            int paramIndex = 1;
+            pstmt.setInt(paramIndex++, issue.getUserId());
+            if (issue.getCategoryId() != null) {
+                pstmt.setInt(paramIndex++, issue.getCategoryId());
+            }
+            pstmt.setString(paramIndex++, issue.getTitle());
+            pstmt.setString(paramIndex++, issue.getDescription());
 
         pstmt.executeUpdate();
         System.out.println("Şikayetiniz başarıyla sisteme iletildi! ✅");
 
     } catch (SQLException e) {
         System.out.println("Şikayet oluşturulurken bir hata oluştu: " + e.getMessage());
+            throw new RuntimeException("Şikayet oluşturulamadı: " + e.getMessage(), e);
     }
 }
     public List<Issue> getAllIssues() {
@@ -38,9 +48,18 @@ public class IssueDAO {
             Issue issue = new Issue();
             issue.setIssueId(rs.getInt("issue_id"));
             issue.setUserId(rs.getInt("user_id"));
+            if (rs.getObject("category_id") != null) {
+                issue.setCategoryId(rs.getInt("category_id"));
+            }
             issue.setTitle(rs.getString("title"));
             issue.setDescription(rs.getString("description"));
             issue.setStatus(rs.getString("status"));
+            if (rs.getObject("priority") != null) {
+                issue.setPriority(rs.getString("priority"));
+            }
+            if (rs.getTimestamp("created_at") != null) {
+                issue.setCreatedAt(rs.getTimestamp("created_at").toString());
+            }
             issues.add(issue);
         }
     } catch (SQLException e) {

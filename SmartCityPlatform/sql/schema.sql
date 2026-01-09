@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS Issues (
     title VARCHAR(100) NOT NULL,
     description TEXT,
     status ENUM('Yeni', 'İnceleniyor', 'Çözüldü') DEFAULT 'Yeni',
+    priority ENUM('Yüksek', 'Orta', 'Düşük') DEFAULT 'Orta',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (category_id) REFERENCES Categories(category_id)

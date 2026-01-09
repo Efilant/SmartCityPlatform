@@ -1,13 +1,13 @@
 package controller;
 
-import models.User;
-import service.UserService;
 import dao.UserDAO;
+import java.util.HashMap;
+import java.util.Map;
+import models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.HashMap;
-import java.util.Map;
+import service.UserService;
 
 /**
  * AuthController - Kimlik Doğrulama REST Controller'ı
@@ -23,6 +23,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
 public class AuthController {
     
     // Service katmanını kullanıyoruz (DAO'ya direkt erişim yok!)

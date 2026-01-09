@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import models.Issue;
-import service.ApplicationService;
-import service.CategoryService;
-import service.IssueService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import service.ApplicationService;
+import service.CategoryService;
+import service.IssueService;
 
 /**
  * AdminController - Yönetici İşlemleri REST Controller'ı
@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/admin")
+@CrossOrigin(origins = "*")
 public class AdminController {
     
     private IssueService issueService;
@@ -86,7 +87,7 @@ public class AdminController {
         
         // Service katmanını çağırarak durum güncellemesini yapıyoruz
         try {
-        issueService.updateStatusByAdmin(issueId, newStatus);
+            issueService.updateStatusByAdmin(issueId, newStatus);
             response.put("success", true);
             response.put("message", "Şikayet durumu başarıyla güncellendi!");
             return ResponseEntity.ok(response);
@@ -140,21 +141,41 @@ public class AdminController {
     }
     
     /**
-     * Tüm Şikayetleri Listeleme
-     * REST Endpoint: GET /api/admin/issues
+     * Tüm Şikayetleri Listeleme (Kategori ve Durum Filtreli)
+     * REST Endpoint: GET /api/admin/issues?categoryId=1&status=Yeni
      * 
+     * @param categoryId Kategori ID'si (opsiyonel query parameter)
+     * @param status Durum filtresi (opsiyonel query parameter: Yeni, İnceleniyor, Çözüldü)
      * @return JSON response: {"success": true, "issues": [...]}
      * @author Esma
      */
     @GetMapping("/issues")
-    public ResponseEntity<Map<String, Object>> getAllIssues() {
+    public ResponseEntity<Map<String, Object>> getAllIssues(
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) String status) {
         Map<String, Object> response = new HashMap<>();
         
-        List<Issue> issues = issueService.getAllIssuesForAdmin();
+        String filterStatus = null;
+        if (status != null && !status.trim().isEmpty() && !status.equals("Tümü")) {
+            filterStatus = status;
+        }
+        
+        Integer filterCategoryId = null;
+        if (categoryId != null && categoryId > 0) {
+            filterCategoryId = categoryId;
+        }
+        
+        List<Issue> issues = issueService.getAllIssuesForAdmin(filterCategoryId, filterStatus);
         
         response.put("success", true);
         response.put("issues", issues);
         response.put("count", issues.size());
+        if (filterCategoryId != null) {
+            response.put("categoryId", filterCategoryId);
+        }
+        if (filterStatus != null) {
+            response.put("status", filterStatus);
+        }
         
         return ResponseEntity.ok(response);
     }
@@ -198,7 +219,7 @@ public class AdminController {
         
         // DAO'yu çağırıyoruz (ProjectService henüz mevcut değil)
         try {
-        projectDAO.save(title, description, startDate, endDate);
+            projectDAO.save(title, description, startDate, endDate);
             response.put("success", true);
             response.put("message", "Proje başarıyla oluşturuldu!");
             return ResponseEntity.ok(response);
@@ -234,7 +255,7 @@ public class AdminController {
         }
         
         try {
-        projectDAO.updateStatus(projectId, newStatus);
+            projectDAO.updateStatus(projectId, newStatus);
             response.put("success", true);
             response.put("message", "Proje durumu başarıyla güncellendi!");
             return ResponseEntity.ok(response);
@@ -265,10 +286,12 @@ public class AdminController {
         }
         
         try {
-        // Stored Procedure kullanarak detaylı başvuru listesi
-        applicationService.printProjectApplications(projectId);
+            // Stored Procedure kullanarak detaylı başvuru listesi
+            List<Map<String, Object>> applications = applicationService.getProjectApplications(projectId);
             response.put("success", true);
-            response.put("message", "Proje #" + projectId + " için başvurular listelendi. (Detaylar console'da görüntülenir)");
+            response.put("applications", applications);
+            response.put("count", applications.size());
+            response.put("projectId", projectId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -297,8 +320,8 @@ public class AdminController {
         }
         
         try {
-        // DAO'yu çağırarak başvuru durumunu güncelliyoruz
-        applicationDAO.updateStatus(applicationId, "Onaylandı");
+            // DAO'yu çağırarak başvuru durumunu güncelliyoruz
+            applicationDAO.updateStatus(applicationId, "Onaylandı");
             response.put("success", true);
             response.put("message", "Başvuru onaylandı!");
             return ResponseEntity.ok(response);
@@ -329,8 +352,8 @@ public class AdminController {
         }
         
         try {
-        // DAO'yu çağırarak başvuru durumunu güncelliyoruz
-        applicationDAO.updateStatus(applicationId, "Reddedildi");
+            // DAO'yu çağırarak başvuru durumunu güncelliyoruz
+            applicationDAO.updateStatus(applicationId, "Reddedildi");
             response.put("success", true);
             response.put("message", "Başvuru reddedildi.");
             return ResponseEntity.ok(response);
@@ -357,14 +380,15 @@ public class AdminController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-        // Sistem genel istatistikleri (Stored Procedure kullanarak)
-        projectDAO.printDashboardSummary();
-        
-        // Kategori başarı oranları (Stored Procedure kullanarak)
-        issueService.printCategoryReport();
+            // Sistem genel istatistikleri (Stored Procedure kullanarak)
+            Map<String, Object> systemStats = projectDAO.getDashboardSummary();
+            
+            // Kategori başarı oranları (Stored Procedure kullanarak)
+            List<Map<String, Object>> categoryReport = issueService.getCategoryReport();
             
             response.put("success", true);
-            response.put("message", "Analitik dashboard verileri görüntülendi. (Detaylar console'da görüntülenir)");
+            response.put("systemStats", systemStats);
+            response.put("categoryReport", categoryReport);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -420,9 +444,11 @@ public class AdminController {
         }
         
         try {
-        categoryService.printTopCategories(limit);
+            List<Map<String, Object>> topCategories = categoryService.getTopCategories(limit);
             response.put("success", true);
-            response.put("message", "Top " + limit + " kategori listelendi. (Detaylar console'da görüntülenir)");
+            response.put("categories", topCategories);
+            response.put("count", topCategories.size());
+            response.put("limit", limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -443,9 +469,10 @@ public class AdminController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-        issueService.printMonthlyStats();
+            List<Map<String, Object>> monthlyStats = issueService.getMonthlyStats();
             response.put("success", true);
-            response.put("message", "Son 30 günün istatistikleri görüntülendi. (Detaylar console'da görüntülenir)");
+            response.put("stats", monthlyStats);
+            response.put("count", monthlyStats.size());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);

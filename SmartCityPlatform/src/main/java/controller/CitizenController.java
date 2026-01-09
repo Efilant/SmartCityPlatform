@@ -3,12 +3,14 @@ package controller;
 import models.Issue;
 import models.User;
 import models.Application;
+import models.Project;
 import service.IssueService;
 import dao.ProjectDAO;
 import dao.ApplicationDAO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 public class CitizenController {
     
     private IssueService issueService;
@@ -111,14 +114,8 @@ public class CitizenController {
     public ResponseEntity<Map<String, Object>> getMyIssues(@PathVariable int userId) {
         Map<String, Object> response = new HashMap<>();
         
-        // Service katmanından tüm şikayetleri alıp filtreliyoruz
-        // Not: İdeal mimaride Service katmanında getMyIssues metodu olmalıdır
-        List<Issue> allIssues = issueService.getAllIssuesForAdmin();
-        
-        // Kullanıcının kendi şikayetlerini filtreliyoruz
-        List<Issue> myIssues = allIssues.stream()
-            .filter(issue -> issue.getUserId() == userId)
-            .collect(java.util.stream.Collectors.toList());
+        // Service katmanından kullanıcının şikayetlerini alıyoruz
+        List<Issue> myIssues = issueService.getMyIssues(userId);
         
         response.put("success", true);
         response.put("issues", myIssues);
@@ -138,7 +135,7 @@ public class CitizenController {
     public ResponseEntity<Map<String, Object>> viewOpenProjects() {
         Map<String, Object> response = new HashMap<>();
         
-        List<String> openProjects = projectDAO.findAllOpen();
+        List<Project> openProjects = projectDAO.findAllOpen();
         
         response.put("success", true);
         response.put("projects", openProjects);
@@ -208,16 +205,18 @@ public class CitizenController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-    applicationDAO.findByUserId(userId);
+            List<Map<String, Object>> applications = applicationDAO.findByUserIdWithProjectInfo(userId);
+            
             response.put("success", true);
-            response.put("message", "Başvurularınız listelendi. (Detaylar console'da görüntülenir)");
+            response.put("applications", applications);
+            response.put("count", applications.size());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Başvurular listelenirken bir hata oluştu: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-}
+    }
     
     /**
      * Kullanıcının duruma göre şikayetlerini görüntüleme (Stored Procedure kullanarak)

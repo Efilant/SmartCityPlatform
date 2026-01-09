@@ -42,7 +42,17 @@ public class IssueService {
     }
 
     public List<Issue> getAllIssuesForAdmin() {
-        return issueDAO.getAllIssues();
+        return issueDAO.getAllIssues(null, null);
+    }
+    
+    /**
+     * Admin için filtrelenmiş şikayetleri getirir
+     * @param categoryId Kategori ID'si (null ise tüm kategoriler)
+     * @param status Durum (null ise tüm durumlar)
+     * @return Filtrelenmiş şikayetler listesi
+     */
+    public List<Issue> getAllIssuesForAdmin(Integer categoryId, String status) {
+        return issueDAO.getAllIssues(categoryId, status);
     }
     
     /**
@@ -56,10 +66,20 @@ public class IssueService {
     }
     
     /**
-     * Kategori başarı raporunu gösterir (Stored Procedure kullanarak)
+     * Kategori başarı raporunu getirir (Stored Procedure kullanarak)
      * 
+     * @return List of category report maps
      * @author Elif
      */
+    public java.util.List<java.util.Map<String, Object>> getCategoryReport() {
+        return issueDAO.getCategoryReport();
+    }
+    
+    /**
+     * Eski metod uyumluluk için (deprecated)
+     * @deprecated Use getCategoryReport() instead
+     */
+    @Deprecated
     public void printCategoryReport() {
         issueDAO.printCategoryReport();
     }
@@ -88,10 +108,20 @@ public class IssueService {
     }
     
     /**
-     * Son 30 günün günlük istatistiklerini gösterir (Stored Procedure kullanarak)
+     * Son 30 günün günlük istatistiklerini getirir (Stored Procedure kullanarak)
      * 
+     * @return List of daily statistics maps
      * @author Elif
      */
+    public java.util.List<java.util.Map<String, Object>> getMonthlyStats() {
+        return issueDAO.getMonthlyStats();
+    }
+    
+    /**
+     * Eski metod uyumluluk için (deprecated)
+     * @deprecated Use getMonthlyStats() instead
+     */
+    @Deprecated
     public void printMonthlyStats() {
         issueDAO.printMonthlyStats();
     }
